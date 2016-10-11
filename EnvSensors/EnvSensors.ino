@@ -1,11 +1,22 @@
-#define PIN_SCE   6
-#define PIN_RESET 5
-#define PIN_DC    4
-#define PIN_SDIN  3
-#define PIN_SCLK  2
 
-int LIGHT_SENSOR_PIN = A0;
-int WATER_SENSOR_PIN = A1;
+#include "dht11.h"
+
+dht11 DHT11;
+
+#define DHT11PIN 2
+
+
+#define PIN_SCE   8
+#define PIN_RESET 9
+#define PIN_DC    10
+#define PIN_SDIN  11
+#define PIN_SCLK  13
+#define DHT_PIN   1
+
+int LIGHT_SENSOR_PIN = A2;
+int WATER_SENSOR_PIN = A5;
+
+char strBuffer[30]; 
 
 #define LCD_C     LOW
 #define LCD_D     HIGH
@@ -175,10 +186,6 @@ void LcdWrite(byte dc, byte data)
   digitalWrite(PIN_SCE, HIGH);
 }
 
-// gotoXY routine to position cursor 
-// x - range: 0 to 84
-// y - range: 0 to 5
-
 void gotoXY(int x, int y)
 {
   LcdWrite( 0, 0x80 | x);  // Column.
@@ -192,26 +199,37 @@ void setup(void) {
  LcdInitialise();
  LcdClear();
  gotoXY(0,0);
- LcdCharacter('S');
- LcdCharacter('T');
- LcdCharacter('A');
- LcdCharacter('R');
- LcdCharacter('T'); 
 }
 
 void loop(void) {
   LcdClear();
+  
   gotoXY(0,0);
-  LcdCharacter('L');
-  LcdCharacter('i');
-  LcdCharacter('g');
-  LcdCharacter('h');
-  LcdCharacter('t');
-  LcdCharacter(':');
-  // LcdCharacter(analogRead(LIGHT_SENSOR_PIN));
-  Serial.print("Light: ");
-  Serial.println(analogRead(LIGHT_SENSOR_PIN));
-  Serial.print("Water: ");
-  Serial.println(analogRead(WATER_SENSOR_PIN));
-  delay(1000);
+  LcdString("Readings");
+  
+  gotoXY(0,1);
+  LcdString("Light: ");
+  itoa(analogRead(LIGHT_SENSOR_PIN),strBuffer,10);
+  LcdString(strBuffer);
+
+  
+  gotoXY(0,2);
+  LcdString("Water: ");
+  itoa(analogRead(WATER_SENSOR_PIN),strBuffer,10);
+  LcdString(strBuffer);
+  
+  gotoXY(0,3);
+  LcdString("Temp: ");
+  int chk = DHT11.read(DHT11PIN);
+  dtostrf((float)DHT11.temperature, 1, 1, strBuffer);
+  LcdString(strBuffer);
+  LcdString("C");
+  
+  Serial.print("Humidity (%): ");
+  Serial.println((float)DHT11.humidity, 2);
+
+  Serial.print("Temperature (°C): ");
+  Serial.println((float)DHT11.temperature, 2);
+   
+  delay(2000);
 }
